@@ -7,56 +7,91 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
       margin: 0;
-      background: #1f1f1f;
-      color: #ffffff;
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      color: #f4f4f4;
+      min-height: 100vh;
     }
     header {
-      background: #0078D7;
-      padding: 20px;
+      background: linear-gradient(90deg, #0078D7 60%, #00bcf2 100%);
+      padding: 32px 20px 24px 20px;
       text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
     }
     header h1 {
       margin: 0;
-      font-size: 2rem;
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
     header p {
-      margin: 10px 0 0;
-      font-size: 1rem;
+      margin: 12px 0 0;
+      font-size: 1.15rem;
+      color: #e0e0e0;
+      font-weight: 400;
     }
     .section {
-      padding: 30px;
-      background: #2b2b2b;
-      margin: 20px auto;
-      max-width: 800px;
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      padding: 36px 24px;
+      background: rgba(43,43,43,0.98);
+      margin: 32px auto;
+      max-width: 900px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      backdrop-filter: blur(2px);
     }
     .button {
       display: inline-flex;
       align-items: center;
-      margin: 10px;
-      padding: 12px 20px;
-      font-size: 16px;
-      background-color: #0078D7;
-      color: white;
+      margin: 10px 8px 10px 0;
+      padding: 14px 26px;
+      font-size: 1.1rem;
+      background: linear-gradient(90deg, #0078D7 60%, #00bcf2 100%);
+      color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background 0.3s, transform 0.2s;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,120,215,0.15);
+      transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+      outline: none;
+      gap: 8px;
     }
-    .button:hover {
-      background-color: #005a9e;
-      transform: scale(1.05);
+    .button:hover, .button:focus {
+      background: linear-gradient(90deg, #005a9e 60%, #00a4c6 100%);
+      transform: translateY(-2px) scale(1.06);
+      box-shadow: 0 6px 18px rgba(0,120,215,0.25);
     }
     .button i {
-      margin-right: 8px;
+      margin-right: 10px;
+      font-size: 1.2em;
     }
     .section-group {
       display: flex;
       flex-direction: column;
-      gap: 30px;
+      gap: 36px;
+    }
+    @media (min-width: 800px) {
+      .section-group {
+        flex-direction: row;
+        gap: 48px;
+        justify-content: space-between;
+      }
+      .section-group > div {
+        flex: 1 1 0;
+      }
+    }
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: #00bcf2;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.10);
     }
     #label-container {
       margin-top: 20px;
@@ -65,40 +100,79 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #3a3a3a;
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin: 10px 0;
+      background: linear-gradient(90deg, #3a3a3a 70%, #232526 100%);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin: 12px 0;
       font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      border: 1px solid #2b2b2b;
+      transition: box-shadow 0.2s;
+    }
+    .prediction:hover {
+      box-shadow: 0 4px 16px rgba(0,188,242,0.10);
     }
     .prediction .label {
       flex: 1;
+      font-size: 1.1rem;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.10);
     }
     .prediction .bar-container {
       flex: 2;
-      margin-left: 20px;
+      margin-left: 24px;
       background: #444;
-      border-radius: 5px;
+      border-radius: 6px;
       overflow: hidden;
       position: relative;
+      height: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
     }
     .prediction .bar {
-      height: 20px;
-      background: #00bcf2;
+      height: 24px;
+      background: linear-gradient(90deg, #00bcf2 60%, #0078D7 100%);
       text-align: right;
-      line-height: 20px;
+      line-height: 24px;
       color: #fff;
-      padding-right: 5px;
-      font-size: 14px;
+      padding-right: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: width 0.5s cubic-bezier(.4,2,.6,1), background 0.3s;
+      border-radius: 6px 0 0 6px;
+      box-shadow: 0 1px 4px rgba(0,120,215,0.10);
     }
     #webcam-container, #image-preview-container {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
       margin-top: 20px;
+      gap: 16px;
+    }
+    #webcam-container canvas, #image-preview-container canvas {
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,188,242,0.10);
+      border: 2px solid #00bcf2;
+      background: #232526;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+      transition: box-shadow 0.2s;
     }
     input[type="file"] {
       display: none;
+    }
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+      width: 10px;
+      background: #232526;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #0078D7;
+      border-radius: 8px;
+    }
+    ::selection {
+      background: #00bcf2;
+      color: #fff;
     }
   </style>
 </head>
@@ -115,6 +189,7 @@
       <button class="button" onclick="startWebcam('environment')"><i class="fas fa-camera-retro"></i> Cámara Trasera</button>
       <label for="image-upload" class="button"><i class="fas fa-upload"></i> Subir Imagen</label>
       <input type="file" accept="image/*" id="image-upload" />
+      <button id="take-photo-btn" class="button" style="display:none;margin-top:10px;"><i class="fas fa-circle"></i> Tomar Foto</button>
     </div>
 
     <div>
@@ -134,6 +209,7 @@
 <script>
   const URL = "./my_model/";
   let model, webcam, labelContainer, maxPredictions;
+  let webcamMode = 'user';
 
   async function loadModel() {
     const modelURL = URL + "model.json";
@@ -154,6 +230,7 @@
   }
 
   async function startWebcam(facingMode = 'user') {
+    webcamMode = facingMode;
     await loadModel();
     if (webcam) webcam.stop();
     webcam = new tmImage.Webcam(200, 200, true);
@@ -162,6 +239,9 @@
     window.requestAnimationFrame(loop);
     document.getElementById("webcam-container").innerHTML = "";
     document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+    // Mostrar botón solo si es cámara trasera
+    document.getElementById("take-photo-btn").style.display = (facingMode === 'environment') ? "inline-flex" : "none";
   }
 
   async function loop() {
@@ -209,6 +289,27 @@
     document.getElementById("image-preview-container").appendChild(canvas);
     await predict(canvas);
   }
+
+  // Botón para tomar foto con cámara trasera
+  document.getElementById("take-photo-btn").addEventListener("click", async () => {
+    if (webcam && webcamMode === 'environment') {
+      // Captura el frame actual del canvas del webcam
+      const photoCanvas = document.createElement("canvas");
+      photoCanvas.width = 200;
+      photoCanvas.height = 200;
+      const ctx = photoCanvas.getContext("2d");
+      ctx.drawImage(webcam.canvas, 0, 0, 200, 200);
+
+      // Detener la cámara y limpiar el contenedor
+      webcam.stop();
+      document.getElementById("webcam-container").innerHTML = "";
+
+      // Mostrar la foto en la vista previa y predecir
+      document.getElementById("image-preview-container").innerHTML = "";
+      document.getElementById("image-preview-container").appendChild(photoCanvas);
+      await predict(photoCanvas);
+    }
+  });
 </script>
 </body>
 </html>
