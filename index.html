@@ -1,213 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Teachable Machine - Cargar Imagen</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 480px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            background: #f9f9f9;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-        #webcam-container, #image-preview-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 1rem;
-            border: 1px solid #ccc;
-            background: white;
-            width: 200px;
-            height: 200px;
-            overflow: hidden;
-            border-radius: 8px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        #label-container {
-            margin-top: 1rem;
-            text-align: center;
-        }
-        button, input[type="file"] {
-            display: block;
-            margin: 1rem auto 0 auto;
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            cursor: pointer;
-            border-radius: 4px;
-            border: 1px solid #007bff;
-            background-color: #007bff;
-            color: white;
-            transition: background-color 0.3s ease;
-        }
-        button:hover, input[type="file"]:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-        #loading-message {
-            text-align: center;
-            margin-top: 1rem;
-            font-style: italic;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clasificador de Imágenes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #1f1f1f;
+      color: #ffffff;
+    }
+    header {
+      background: #0078D7;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    header p {
+      margin: 10px 0 0;
+      font-size: 1rem;
+    }
+    .section {
+      padding: 30px;
+      background: #2b2b2b;
+      margin: 20px auto;
+      max-width: 800px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      margin: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #0078D7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .button:hover {
+      background-color: #005a9e;
+      transform: scale(1.05);
+    }
+    .button i {
+      margin-right: 8px;
+    }
+    .section-group {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    #label-container {
+      margin-top: 20px;
+    }
+    .prediction {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3a3a3a;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .prediction .label {
+      flex: 1;
+    }
+    .prediction .bar-container {
+      flex: 2;
+      margin-left: 20px;
+      background: #444;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+    .prediction .bar {
+      height: 20px;
+      background: #00bcf2;
+      text-align: right;
+      line-height: 20px;
+      color: #fff;
+      padding-right: 5px;
+      font-size: 14px;
+    }
+    #webcam-container, #image-preview-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+  </style>
 </head>
 <body>
+<header>
+  <h1>Clasificador de Imágenes</h1>
+  <p>Clasifica imágenes con la cámara o desde tu galería usando inteligencia artificial.</p>
+</header>
+<section class="section">
+  <div class="section-group">
+    <div>
+      <h2>Cámara y Galería</h2>
+      <button class="button" onclick="startWebcam('user')"><i class="fas fa-camera"></i> Cámara Frontal</button>
+      <button class="button" onclick="startWebcam('environment')"><i class="fas fa-camera-retro"></i> Cámara Trasera</button>
+      <label for="image-upload" class="button"><i class="fas fa-upload"></i> Subir Imagen</label>
+      <input type="file" accept="image/*" id="image-upload" />
+    </div>
 
-    <h1>Teachable Machine - Clasificación de Imágenes</h1>
+    <div>
+      <h2>Vista Previa</h2>
+      <div id="webcam-container"></div>
+      <div id="image-preview-container"></div>
+    </div>
 
-    <button type="button" id="start-webcam-btn">Iniciar Webcam</button>
-    <input type="file" accept="image/*" id="image-upload" aria-label="Subir imagen para clasificar" />
+    <div>
+      <h2>Resultados</h2>
+      <div id="label-container"></div>
+    </div>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script>
+  const URL = "./my_model/";
+  let model, webcam, labelContainer, maxPredictions;
 
-    <div id="loading-message" aria-live="polite" role="status"></div>
+  async function loadModel() {
+    const modelURL = URL + "model.json";
+    const metadataURL = URL + "metadata.json";
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+    labelContainer = document.getElementById("label-container");
+    labelContainer.innerHTML = "";
+    for (let i = 0; i < maxPredictions; i++) {
+      const div = document.createElement("div");
+      div.classList.add("prediction");
+      div.innerHTML = `
+        <div class="label">Clase ${i + 1}</div>
+        <div class="bar-container"><div class="bar" style="width: 0%">0%</div></div>
+      `;
+      labelContainer.appendChild(div);
+    }
+  }
 
-    <section>
-        <div id="webcam-container" aria-label="Vista previa de webcam"></div>
-        <div id="image-preview-container" aria-label="Vista previa de imagen subida"></div>
-    </section>
+  async function startWebcam(facingMode = 'user') {
+    await loadModel();
+    if (webcam) webcam.stop();
+    webcam = new tmImage.Webcam(200, 200, true);
+    await webcam.setup({ facingMode });
+    await webcam.play();
+    window.requestAnimationFrame(loop);
+    document.getElementById("webcam-container").innerHTML = "";
+    document.getElementById("webcam-container").appendChild(webcam.canvas);
+  }
 
-    <section id="label-container" aria-live="polite" role="region" aria-label="Resultados de clasificación"></section>
+  async function loop() {
+    webcam.update();
+    await predict(webcam.canvas);
+    window.requestAnimationFrame(loop);
+  }
 
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    <script>
-        const URL = "./my_model/";
-        let model = null;
-        let webcam = null;
-        let maxPredictions = 0;
+  async function predict(input) {
+    const prediction = await model.predict(input);
+    for (let i = 0; i < maxPredictions; i++) {
+      const p = prediction[i];
+      const percent = (p.probability * 100).toFixed(1);
+      const bar = labelContainer.children[i].querySelector(".bar");
+      const label = labelContainer.children[i].querySelector(".label");
+      label.textContent = `${p.className}`;
+      bar.style.width = `${percent}%`;
+      bar.textContent = `${percent}%`;
+    }
+  }
 
-        const startWebcamBtn = document.getElementById("start-webcam-btn");
-        const imageUploadInput = document.getElementById("image-upload");
-        const webcamContainer = document.getElementById("webcam-container");
-        const imagePreviewContainer = document.getElementById("image-preview-container");
-        const labelContainer = document.getElementById("label-container");
-        const loadingMessage = document.getElementById("loading-message");
+  document.getElementById("image-upload").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!model) await loadModel();
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = async function () {
+          await classifyImage(img);
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  });
 
-        // Carga el modelo y la metadata una sola vez
-        async function loadModel() {
-            if (model) return; // Ya cargado
-
-            loadingMessage.textContent = "Cargando modelo, por favor espere...";
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
-
-            try {
-                model = await tmImage.load(modelURL, metadataURL);
-                maxPredictions = model.getTotalClasses();
-
-                // Prepara contenedores de etiquetas
-                labelContainer.innerHTML = "";
-                for (let i = 0; i < maxPredictions; i++) {
-                    const labelDiv = document.createElement("div");
-                    labelDiv.textContent = "Cargando...";
-                    labelContainer.appendChild(labelDiv);
-                }
-
-                loadingMessage.textContent = "";
-            } catch (error) {
-                loadingMessage.textContent = "Error cargando el modelo.";
-                console.error(error);
-            }
-        }
-
-        // Inicia la webcam y el ciclo de predicción
-        async function startWebcam() {
-            await loadModel();
-
-            if (webcam) {
-                // Si ya hay webcam activa, no hacer nada
-                return;
-            }
-
-            loadingMessage.textContent = "Iniciando webcam...";
-            webcam = new tmImage.Webcam(200, 200, true); // ancho, alto, flip
-            try {
-                await webcam.setup();
-                await webcam.play();
-                webcamContainer.innerHTML = "";
-                webcamContainer.appendChild(webcam.canvas);
-                loadingMessage.textContent = "";
-
-                // Inicia el loop de predicción
-                window.requestAnimationFrame(loop);
-            } catch (error) {
-                loadingMessage.textContent = "Error al iniciar la webcam.";
-                console.error(error);
-            }
-        }
-
-        // Loop de actualización y predicción para webcam
-        async function loop() {
-            webcam.update();
-            await predict(webcam.canvas);
-            window.requestAnimationFrame(loop);
-        }
-
-        // Función de predicción, recibe un elemento canvas o imagen
-        async function predict(input) {
-            if (!model) return;
-
-            const prediction = await model.predict(input);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction = `${prediction[i].className}: ${(prediction[i].probability * 100).toFixed(2)}%`;
-                labelContainer.children[i].textContent = classPrediction;
-            }
-        }
-
-        // Evento para cargar imagen desde archivo
-        imageUploadInput.addEventListener("change", async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            await loadModel();
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = async function() {
-                    // Redimensionar imagen a 200x200 para modelo
-                    const canvas = document.createElement("canvas");
-                    canvas.width = 200;
-                    canvas.height = 200;
-                    const ctx = canvas.getContext("2d");
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    // Mostrar preview
-                    imagePreviewContainer.innerHTML = "";
-                    imagePreviewContainer.appendChild(canvas);
-
-                    // Limpiar webcam preview si existe
-                    if (webcamContainer.firstChild) {
-                        webcamContainer.innerHTML = "";
-                        if (webcam) {
-                            webcam.stop();
-                            webcam = null;
-                        }
-                    }
-
-                    await predict(canvas);
-                }
-            }
-            reader.readAsDataURL(file);
-        });
-
-        // Botón para iniciar webcam
-        startWebcamBtn.addEventListener("click", () => {
-            // Limpiar preview de imagen si existe
-            if (imagePreviewContainer.firstChild) {
-                imagePreviewContainer.innerHTML = "";
-                imageUploadInput.value = "";
-            }
-            startWebcam();
-        });
-
-    </script>
+  async function classifyImage(img) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    document.getElementById("image-preview-container").innerHTML = "";
+    document.getElementById("image-preview-container").appendChild(canvas);
+    await predict(canvas);
+  }
+</script>
 </body>
 </html>
