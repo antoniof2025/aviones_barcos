@@ -231,14 +231,20 @@
 
   async function startWebcam(facingMode = 'user') {
     webcamMode = facingMode;
-    await loadModel();
-    if (webcam) webcam.stop();
+    // Solo carga el modelo si no está cargado
+    if (!model) await loadModel();
+    if (webcam) {
+      try { webcam.stop(); } catch (e) {}
+    }
     webcam = new tmImage.Webcam(200, 200, true);
     await webcam.setup({ facingMode });
     await webcam.play();
     window.requestAnimationFrame(loop);
     document.getElementById("webcam-container").innerHTML = "";
     document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+    // Limpiar la vista previa al iniciar la cámara
+    document.getElementById("image-preview-container").innerHTML = "";
 
     // Mostrar botón solo si es cámara trasera
     document.getElementById("take-photo-btn").style.display = (facingMode === 'environment') ? "inline-flex" : "none";
