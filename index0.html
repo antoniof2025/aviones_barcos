@@ -351,34 +351,13 @@
       const ctx = photoCanvas.getContext("2d");
       ctx.drawImage(webcam.canvas, 0, 0, 200, 200);
 
-      // Descargar la foto automáticamente (solo funcionará en algunos navegadores Android)
-      const filename = `foto_camara_${Date.now()}.png`;
-      const dataUrl = photoCanvas.toDataURL("image/png");
+      // Descargar la foto automáticamente
       const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = filename;
-
-      // Intentar descarga automática
+      link.href = photoCanvas.toDataURL("image/png");
+      link.download = `foto_camara_${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      // Mostrar enlace manual si la descarga automática falla (Android)
-      setTimeout(() => {
-        // Elimina enlaces anteriores si existen
-        const prev = document.getElementById("descarga-manual-foto");
-        if (prev) prev.remove();
-        // Muestra el enlace manual
-        const descargaDiv = document.createElement('div');
-        descargaDiv.id = "descarga-manual-foto";
-        descargaDiv.style.margin = "16px 0";
-        descargaDiv.innerHTML = `
-          <a href="${dataUrl}" download="${filename}" style="color:#00bcf2;font-weight:bold;font-size:1.1em;">
-            Pulsa aquí si la foto no se descargó automáticamente
-          </a>
-        `;
-        document.getElementById("image-preview-container").prepend(descargaDiv);
-      }, 500);
 
       webcam.stop();
       document.getElementById("webcam-container").innerHTML = "";
