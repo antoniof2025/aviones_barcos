@@ -203,6 +203,21 @@
       <div id="label-container"></div>
     </div>
   </div>
+
+  <div style="margin-top:32px;">
+    <h2>Historial de Clasificaciones</h2>
+    <button class="button" onclick="exportarTablaExcel()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+    <table id="tabla-resultados" style="width:100%;margin-top:16px;background:#232526;border-radius:10px;overflow:hidden;">
+      <thead>
+        <tr style="background:#0078D7;">
+          <th style="padding:8px;">Nombre de la Foto</th>
+          <th style="padding:8px;">Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
 </section>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
@@ -269,6 +284,48 @@
     }
   }
 
+  // Historial de resultados
+  let historialResultados = [];
+
+  // Añade una fila a la tabla
+  function agregarAFilaHistorial(nombre, resultado) {
+    historialResultados.push({nombre, resultado});
+    const tbody = document.getElementById("tabla-resultados").querySelector("tbody");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td style="padding:8px;">${nombre}</td><td style="padding:8px;">${resultado}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Exportar a Excel (CSV)
+  function exportarTablaExcel() {
+    let csv = "Nombre de la Foto,Resultado\n";
+    historialResultados.forEach(row => {
+      csv += `"${row.nombre}","${row.resultado}"\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "historial_clasificaciones.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  async function classifyImage(img, nombre = "Imagen subida") {
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    document.getElementById("image-preview-container").innerHTML = "";
+    document.getElementById("image-preview-container").appendChild(canvas);
+    const resultado = await predictAndReturn(canvas);
+    agregarAFilaHistorial(nombre, resultado);
+  }
+
+  // Modifica el evento de subida de imagen para pasar el nombre del archivo
   document.getElementById("image-upload").addEventListener("change", async (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -278,44 +335,52 @@
         const img = new Image();
         img.src = e.target.result;
         img.onload = async function () {
-          await classifyImage(img);
+          await classifyImage(img, file.name);
         };
       };
       reader.readAsDataURL(file);
     }
   });
 
-  async function classifyImage(img) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 200;
-    canvas.height = 200;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    document.getElementById("image-preview-container").innerHTML = "";
-    document.getElementById("image-preview-container").appendChild(canvas);
-    await predict(canvas);
-  }
-
   // Botón para tomar foto con cámara trasera
   document.getElementById("take-photo-btn").addEventListener("click", async () => {
     if (webcam && webcamMode === 'environment') {
-      // Captura el frame actual del canvas del webcam
       const photoCanvas = document.createElement("canvas");
       photoCanvas.width = 200;
       photoCanvas.height = 200;
       const ctx = photoCanvas.getContext("2d");
       ctx.drawImage(webcam.canvas, 0, 0, 200, 200);
 
-      // Detener la cámara y limpiar el contenedor
       webcam.stop();
       document.getElementById("webcam-container").innerHTML = "";
 
-      // Mostrar la foto en la vista previa y predecir
       document.getElementById("image-preview-container").innerHTML = "";
       document.getElementById("image-preview-container").appendChild(photoCanvas);
-      await predict(photoCanvas);
+      const resultado = await predictAndReturn(photoCanvas);
+      agregarAFilaHistorial("Foto cámara", resultado);
     }
   });
+
+  // Nueva función para obtener el resultado principal como texto
+  async function predictAndReturn(input) {
+    const prediction = await model.predict(input);
+    let maxProb = 0;
+    let resultado = "";
+    for (let i = 0; i < maxPredictions; i++) {
+      const p = prediction[i];
+      const percent = (p.probability * 100).toFixed(1);
+      const bar = labelContainer.children[i].querySelector(".bar");
+      const label = labelContainer.children[i].querySelector(".label");
+      label.textContent = `${p.className}`;
+      bar.style.width = `${percent}%`;
+      bar.textContent = `${percent}%`;
+      if (p.probability > maxProb) {
+        maxProb = p.probability;
+        resultado = `${p.className} (${percent}%)`;
+      }
+    }
+    return resultado;
+  }
 </script>
 </body>
 </html>
